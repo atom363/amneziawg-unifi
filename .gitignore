@@ -1,0 +1,16 @@
+# Build artifacts
+build/
+dist/
+
+# Private configs (never commit real keys!)
+configs/*.conf
+!configs/*.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store

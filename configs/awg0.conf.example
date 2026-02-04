@@ -1,0 +1,43 @@
+# AmneziaWG Client Configuration
+# Copy to /data/amneziawg/conf/awg0.conf and edit
+
+[Interface]
+# Your private key (generate with: awg genkey)
+PrivateKey = REPLACE_WITH_YOUR_PRIVATE_KEY
+
+# Your VPN IP address
+Address = 10.8.0.2/24
+
+# Optional: DNS servers to use when VPN is active
+# DNS = 1.1.1.1, 8.8.8.8
+
+# AmneziaWG obfuscation parameters
+# These must match your server configuration
+Jc = 4
+Jmin = 40
+Jmax = 70
+S1 = 0
+S2 = 0
+H1 = 1
+H2 = 2
+H3 = 3
+H4 = 4
+
+[Peer]
+# Server's public key
+PublicKey = REPLACE_WITH_SERVER_PUBLIC_KEY
+
+# Optional: Pre-shared key for additional security
+# PresharedKey = REPLACE_WITH_PRESHARED_KEY
+
+# Server endpoint
+Endpoint = vpn.example.com:51820
+
+# Route all traffic through VPN
+AllowedIPs = 0.0.0.0/0, ::/0
+
+# Or route only specific networks:
+# AllowedIPs = 10.0.0.0/8, 192.168.0.0/16
+
+# Keep connection alive (important for NAT)
+PersistentKeepalive = 25
