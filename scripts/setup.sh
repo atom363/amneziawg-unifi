@@ -7,7 +7,7 @@ AWG_IFACE="awg0"
 AWG_TABLE="100"
 AWG_FWMARK="0x1"
 IPSET_NAME="vpn_sources_${AWG_IFACE}"
-IP_RULE_PRIORITY="100"
+IP_RULE_PRIORITY="32100"
 
 # Add binaries to PATH
 export PATH="$AWG_DIR/bin:$PATH"
