@@ -58,6 +58,35 @@ case "$1" in
         ;;
     down)
         echo "Stopping AmneziaWG interface $AWG_IFACE..."
+
+        # Remove MASQUERADE rule
+        iptables -t nat -D POSTROUTING -o "$AWG_IFACE" -j MASQUERADE 2>/dev/null || true
+        echo "Removed MASQUERADE rule for $AWG_IFACE"
+
+        # Remove ip rule
+        ip rule del fwmark "$AWG_FWMARK" lookup "$AWG_TABLE" priority "$IP_RULE_PRIORITY" 2>/dev/null || true
+        echo "Removed ip rule for fwmark $AWG_FWMARK"
+
+        # Remove iptables mangle rules
+        iptables -t mangle -D PREROUTING -m set --match-set "$IPSET_NAME" src -j MARK --set-mark "$AWG_FWMARK" 2>/dev/null || true
+        iptables -t mangle -D OUTPUT -m set --match-set "$IPSET_NAME" src -j MARK --set-mark "$AWG_FWMARK" 2>/dev/null || true
+        echo "Removed iptables mangle rules for $IPSET_NAME"
+
+        # Destroy ipset
+        ipset destroy "$IPSET_NAME" 2>/dev/null || true
+        echo "Destroyed ipset '$IPSET_NAME'"
+
+        # Remove default route from custom table
+        ip route del default dev "$AWG_IFACE" table "$AWG_TABLE" 2>/dev/null || true
+        echo "Removed default route from table $AWG_TABLE"
+
+        # Remove routing table entry from rt_tables.d
+        RT_TABLES_FILE="/etc/iproute2/rt_tables.d/custom.conf"
+        if [ -f "$RT_TABLES_FILE" ]; then
+            sed -i "/^${AWG_TABLE}[[:space:]]/d" "$RT_TABLES_FILE" 2>/dev/null || true
+            echo "Removed routing table entry from $RT_TABLES_FILE"
+        fi
+
         "$AWG_DIR/bin/awg-quick" down "$AWG_IFACE" 2>/dev/null || true
         echo "AmneziaWG is down"
         ;;
