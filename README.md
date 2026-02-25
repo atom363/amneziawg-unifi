@@ -52,6 +52,7 @@ systemctl start amneziawg
 
 ## Configuration (must be without DNS option)
 
+If you don't want to send all traffic through vpn set Table = off in [Interface] section of config for managing routing manually
 Example client config (`/data/amneziawg/conf/awg0.conf`):
 
 ```ini
