@@ -22,6 +22,7 @@ RUN apt -y update && \
 RUN git clone --depth 1 https://github.com/amnezia-vpn/amneziawg-tools && \
     cd amneziawg-tools/src && \
     make && \
+    mkdir /out && \
     cp wg /out/awg && \
     cp wg-quick/linux.bash /out/awg-quick
 
