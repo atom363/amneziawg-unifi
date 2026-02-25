@@ -5,6 +5,9 @@ AWG_DIR="/data/amneziawg"
 AWG_CONF="$AWG_DIR/conf/awg0.conf"
 AWG_IFACE="awg0"
 AWG_TABLE="100"
+AWG_FWMARK="0x1"
+IPSET_NAME="vpn_sources_${AWG_IFACE}"
+IP_RULE_PRIORITY="100"
 
 # Add binaries to PATH
 export PATH="$AWG_DIR/bin:$PATH"
@@ -34,6 +37,19 @@ case "$1" in
 
         ip route add default dev "$AWG_IFACE" table "$AWG_TABLE" 2>/dev/null || ip route replace default dev "$AWG_IFACE" table "$AWG_TABLE"
         echo "Added default route through $AWG_IFACE in table $AWG_TABLE"
+
+        # Create ipset for source IPs that should use VPN (if not exists)
+        ipset create "$IPSET_NAME" hash:net 2>/dev/null || true
+        echo "Created/verified ipset '$IPSET_NAME'"
+
+        # Mark traffic from ipset with fwmark
+        iptables -t mangle -A PREROUTING -m set --match-set "$IPSET_NAME" src -j MARK --set-mark "$AWG_FWMARK" 2>/dev/null || true
+        iptables -t mangle -A OUTPUT -m set --match-set "$IPSET_NAME" src -j MARK --set-mark "$AWG_FWMARK" 2>/dev/null || true
+        echo "Added iptables rules to mark traffic from $IPSET_NAME with mark $AWG_FWMARK"
+
+        # Add ip rule to route marked traffic through custom table
+        ip rule add fwmark "$AWG_FWMARK" lookup "$AWG_TABLE" priority "$IP_RULE_PRIORITY" 2>/dev/null || true
+        echo "Added ip rule: fwmark $AWG_FWMARK -> table $AWG_TABLE (priority $IP_RULE_PRIORITY)"
 
         iptables -t nat -A POSTROUTING -o "$AWG_IFACE" -j MASQUERADE
         echo "Added MASQUERADE rule for $AWG_IFACE"
