@@ -36,7 +36,7 @@ jobs:
           cp scripts/amneziawg.service dist/amneziawg/
           cp configs/awg0.conf.example dist/amneziawg/conf/
           chmod +x dist/amneziawg/*.sh dist/amneziawg/bin/*
-          cd dist && tar czf amneziawg-unifi-${{ github.ref_name }}-arm64.tar.gz amneziawg/
+          cd dist && tar czf amneziawg-unifi-arm64.tar.gz amneziawg/
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
