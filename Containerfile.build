@@ -1,9 +1,10 @@
 # Build AmneziaWG binaries for ARM64
 # Usage: docker buildx build --platform linux/arm64 -t amneziawg-builder -f Containerfile.build .
 
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24.4 AS builder-1
 
-RUN apk add --no-cache git make build-base linux-headers bash
+RUN apt -y update && \
+    apt -y install git
 
 WORKDIR /build
 
@@ -11,6 +12,11 @@ WORKDIR /build
 RUN git clone --depth 1 https://github.com/amnezia-vpn/amneziawg-go && \
     cd amneziawg-go && \
     CGO_ENABLED=0 go build -ldflags="-s -w" -o /out/amneziawg-go .
+
+FROM debian:11 AS builder-2
+
+RUN apt -y update && \
+    apt -y install build-essential git
 
 # Build amneziawg-tools
 RUN git clone --depth 1 https://github.com/amnezia-vpn/amneziawg-tools && \
@@ -21,4 +27,5 @@ RUN git clone --depth 1 https://github.com/amnezia-vpn/amneziawg-tools && \
 
 # Final stage - just output binaries
 FROM scratch
-COPY --from=builder /out/* /
+COPY --from=builder-1 /out/* /
+COPY --from=builder-2 /out/* /
