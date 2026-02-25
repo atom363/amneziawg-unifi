@@ -22,7 +22,6 @@ case "$1" in
         "$AWG_DIR/bin/awg-quick" up "$AWG_CONF"
         echo "AmneziaWG is up"
 
-        # Configure iproute2 custom routing table
         RT_TABLES_FILE="/etc/iproute2/rt_tables.d/custom.conf"
         if [ ! -f "$RT_TABLES_FILE" ]; then
             mkdir -p "$(dirname "$RT_TABLES_FILE")"
@@ -35,6 +34,9 @@ case "$1" in
 
         ip route add default dev "$AWG_IFACE" table "$AWG_TABLE" 2>/dev/null || ip route replace default dev "$AWG_IFACE" table "$AWG_TABLE"
         echo "Added default route through $AWG_IFACE in table $AWG_TABLE"
+
+        iptables -t nat -A POSTROUTING -o "$AWG_IFACE" -j MASQUERADE
+        echo "Added MASQUERADE rule for $AWG_IFACE"
 
         "$AWG_DIR/bin/awg" show
         ;;
