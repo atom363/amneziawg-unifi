@@ -24,19 +24,19 @@ Run [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) (WireGuard with DPI
 
 ```bash
 # On your local machine
-curl -LO https://github.com/lexfrei/amneziawg-unifi/releases/latest/download/amneziawg-unifi.tar.gz
+curl -LO https://github.com/atom363/amneziawg-unifi/releases/download/v0.0.4/amneziawg-unifi-v0.0.4-arm64.tar.gz
 ```
 
 ### 2. Deploy to router
 
 ```bash
 # Upload to router
-scp amneziawg-unifi.tar.gz root@172.16.0.1:/tmp/
+scp amneziawg-unifi-v0.0.4-arm64.tar.gz root@172.16.0.1:/tmp/
 
 # SSH to router and install
 ssh root@172.16.0.1
 cd /data
-tar xzf /tmp/amneziawg-unifi.tar.gz
+tar xzf /tmp/amneziawg-unifi-v0.0.4-arm64.tar.gz
 ./amneziawg/install.sh
 ```
 
@@ -50,7 +50,7 @@ vi /data/amneziawg/conf/awg0.conf
 systemctl start amneziawg
 ```
 
-## Configuration
+## Configuration (must be without DNS option)
 
 Example client config (`/data/amneziawg/conf/awg0.conf`):
 
