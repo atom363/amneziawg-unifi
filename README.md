@@ -30,7 +30,7 @@ Run [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) (WireGuard with DPI
 # SSH to router and install
 ssh root@172.16.0.1
 cd /data
-curl -L https://github.com/atom363/amneziawg-unifi/releases/download/latest/amneziawg-unifi-arm64.tar.gz | tar xvzf -
+curl -L https://github.com/atom363/amneziawg-unifi/releases/latest/download/amneziawg-unifi-arm64.tar.gz | tar xvzf -
 ./amneziawg/install.sh
 ```
 
