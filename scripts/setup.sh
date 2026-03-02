@@ -4,10 +4,40 @@ set -e
 AWG_DIR="/data/amneziawg"
 AWG_CONF="$AWG_DIR/conf/awg0.conf"
 AWG_IFACE="awg0"
-AWG_TABLE="100"
 AWG_FWMARK="0x1"
 IPSET_NAME="vpn_sources_${AWG_IFACE}"
 IP_RULE_PRIORITY="32100"
+
+# Function to find an available routing table number
+find_available_table_number() {
+    local base_table=${1:-100}
+    local current_table=$base_table
+    
+    while true; do
+        # Check if the table number exists in /etc/iproute2/rt_tables
+        if grep -q "^[[:space:]]*${current_table}[[:space:]]\+" /etc/iproute2/rt_tables 2>/dev/null; then
+            current_table=$((current_table + 10))
+            continue
+        fi
+        
+        # Check if the table number exists in files under /etc/iproute2/rt_tables.d/
+        if [ -d "/etc/iproute2/rt_tables.d/" ]; then
+            if grep -q "^[[:space:]]*${current_table}[[:space:]]\+" /etc/iproute2/rt_tables.d/* 2>/dev/null; then
+                current_table=$((current_table + 10))
+                continue
+            fi
+        fi
+        
+        # Table number is available
+        echo $current_table
+        return 0
+    done
+}
+
+# Find an available routing table number (only for 'up' command)
+if [ "$1" = "up" ]; then
+    AWG_TABLE=$(find_available_table_number 100)
+fi
 
 # Add binaries to PATH
 export PATH="$AWG_DIR/bin:$PATH"
@@ -58,6 +88,16 @@ case "$1" in
         ;;
     down)
         echo "Stopping AmneziaWG interface $AWG_IFACE..."
+
+        # Find the table number used by this interface from rt_tables.d
+        RT_TABLES_FILE="/etc/iproute2/rt_tables.d/custom.conf"
+        if [ -f "$RT_TABLES_FILE" ]; then
+            AWG_TABLE=$(grep -E "^[0-9]+[[:space:]]+${AWG_IFACE}$" "$RT_TABLES_FILE" | awk '{print $1}' | head -1)
+        fi
+        if [ -z "$AWG_TABLE" ]; then
+            echo "Warning: Could not find routing table for $AWG_IFACE, using default 100"
+            AWG_TABLE="100"
+        fi
 
         # Remove MASQUERADE rule
         iptables -t nat -D POSTROUTING -o "$AWG_IFACE" -j MASQUERADE 2>/dev/null || true
