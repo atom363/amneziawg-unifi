@@ -6,9 +6,12 @@ SYSTEMD_DIR="/etc/systemd/system"
 
 echo "Installing AmneziaWG for UniFi..."
 
-# Verify we're on a UniFi device
-if [ ! -f /etc/unifi-os-release ]; then
-    echo "Error: This doesn't appear to be a UniFi OS device"
+OS_VERSION="$(ubnt-device-info firmware_detail | grep -oE '^[0-9]+')"
+
+#detect major firmware version
+if [ "$OS_VERSION" = '1' ]
+then
+    echo "This script is not compatible with this router's firmware."
     exit 1
 fi
 
@@ -23,7 +26,6 @@ fi
 echo "Installing systemd service..."
 cp "$AWG_DIR/amneziawg.service" "$SYSTEMD_DIR/"
 systemctl daemon-reload
-systemctl enable amneziawg
 
 # Create config directory if not exists
 mkdir -p "$AWG_DIR/conf"
@@ -41,7 +43,7 @@ echo "Installation complete!"
 echo ""
 echo "Next steps:"
 echo "  1. Edit your config: vi $AWG_DIR/conf/awg0.conf"
-echo "  2. Start the VPN:    systemctl start amneziawg"
-echo "  3. Check status:     systemctl status amneziawg"
+echo "  2. Start the VPN:    systemctl enable --now amneziawg@awg0"
+echo "  3. Check status:     systemctl status amneziawg@awg0"
 echo ""
 echo "After firmware updates, run: $AWG_DIR/reinstall.sh"
