@@ -16,9 +16,9 @@ Run [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) (WireGuard with DPI
 
 | Device | Architecture | UniFi OS | Status |
 |--------|-------------|----------|--------|
-| UDR7 | ARM64 (IPQ5322) | 4.x | Tested |
+| UDR7 | ARM64 (IPQ5322) | 4.x | Should work |
 | UDR | ARM64 | 3.x/4.x | Should work |
-| UDM-SE | ARM64 | 3.x/4.x | Should work |
+| UDM-SE | ARM64 | 3.x/4.x | Tested |
 | UDM Pro | ARM64 | 2.x/3.x | Untested |
 
 ## Quick Start

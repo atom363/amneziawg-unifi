@@ -2,14 +2,14 @@
 # Copy to /data/amneziawg/conf/awg0.conf and edit
 
 [Interface]
+# Turn off default routing table manipulation
+Table = off
+
 # Your private key (generate with: awg genkey)
 PrivateKey = REPLACE_WITH_YOUR_PRIVATE_KEY
 
 # Your VPN IP address
 Address = 10.8.0.2/24
-
-# Optional: DNS servers to use when VPN is active
-# DNS = 1.1.1.1, 8.8.8.8
 
 # AmneziaWG obfuscation parameters
 # These must match your server configuration

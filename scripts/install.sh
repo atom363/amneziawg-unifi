@@ -24,7 +24,7 @@ fi
 
 # Install systemd service
 echo "Installing systemd service..."
-cp "$AWG_DIR/amneziawg.service" "$SYSTEMD_DIR/"
+cp "$AWG_DIR/amneziawg@.service" "$SYSTEMD_DIR/"
 systemctl daemon-reload
 
 # Create config directory if not exists

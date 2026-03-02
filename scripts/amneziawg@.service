@@ -1,6 +1,6 @@
 [Unit]
 Description=AmneziaWG VPN Client (%i)
-Documentation=https://github.com/lexfrei/amneziawg-unifi
+Documentation=https://github.com/atom363/amneziawg-unifi
 After=network-online.target
 Wants=network-online.target
 
