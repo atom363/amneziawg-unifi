@@ -33,7 +33,7 @@ jobs:
           mkdir -p dist/amneziawg/bin dist/amneziawg/conf
           cp bin/* dist/amneziawg/bin/
           cp scripts/*.sh dist/amneziawg/
-          cp scripts/amneziawg.service dist/amneziawg/
+          cp scripts/amneziawg@.service dist/amneziawg/
           cp configs/awg0.conf.example dist/amneziawg/conf/
           chmod +x dist/amneziawg/*.sh dist/amneziawg/bin/*
           cd dist && tar czf amneziawg-unifi-arm64.tar.gz amneziawg/
