@@ -2,42 +2,38 @@
 set -e
 
 AWG_DIR="/data/amneziawg"
-AWG_CONF="$AWG_DIR/conf/awg0.conf"
-AWG_IFACE="awg0"
-AWG_FWMARK="0x1"
-IPSET_NAME="vpn_sources_${AWG_IFACE}"
-IP_RULE_PRIORITY="32100"
 
-# Function to find an available routing table number
-find_available_table_number() {
-    local base_table=${1:-100}
-    local current_table=$base_table
-    
-    while true; do
-        # Check if the table number exists in /etc/iproute2/rt_tables
-        if grep -q "^[[:space:]]*${current_table}[[:space:]]\+" /etc/iproute2/rt_tables 2>/dev/null; then
-            current_table=$((current_table + 10))
-            continue
+# Get interface name from second argument (for systemd instance support), default to awg0
+AWG_IFACE="${2:-awg0}"
+AWG_CONF="$AWG_DIR/conf/${AWG_IFACE}.conf"
+
+# Extract number from interface name (e.g., awg0 -> 0, awg1 -> 1, awg10 -> 10)
+IFACE_NUM=$(echo "$AWG_IFACE" | grep -oE '[0-9]+$' || echo "0")
+
+# Calculate unique values based on interface number
+BASE_TABLE=100
+BASE_FWMARK=1
+BASE_PRIORITY=32100
+
+# Function to check if a table number is available
+check_table_available() {
+    local table_num=$1
+    # Check main rt_tables file
+    if grep -q "^[[:space:]]*${table_num}[[:space:]]" /etc/iproute2/rt_tables 2>/dev/null; then
+        return 1
+    fi
+    # Check rt_tables.d directory
+    if [ -d "/etc/iproute2/rt_tables.d/" ]; then
+        if grep -q "^[[:space:]]*${table_num}[[:space:]]" /etc/iproute2/rt_tables.d/* 2>/dev/null; then
+            return 1
         fi
-        
-        # Check if the table number exists in files under /etc/iproute2/rt_tables.d/
-        if [ -d "/etc/iproute2/rt_tables.d/" ]; then
-            if grep -q "^[[:space:]]*${current_table}[[:space:]]\+" /etc/iproute2/rt_tables.d/* 2>/dev/null; then
-                current_table=$((current_table + 10))
-                continue
-            fi
-        fi
-        
-        # Table number is available
-        echo $current_table
-        return 0
-    done
+    fi
+    return 0
 }
 
-# Find an available routing table number (only for 'up' command)
-if [ "$1" = "up" ]; then
-    AWG_TABLE=$(find_available_table_number 100)
-fi
+AWG_FWMARK=$(printf "0x%x" $((BASE_FWMARK + IFACE_NUM)))
+IP_RULE_PRIORITY=$((BASE_PRIORITY + IFACE_NUM))
+IPSET_NAME="vpn_sources_${AWG_IFACE}"
 
 # Add binaries to PATH
 export PATH="$AWG_DIR/bin:$PATH"
@@ -51,6 +47,13 @@ case "$1" in
             echo "Error: Config file not found: $AWG_CONF"
             exit 1
         fi
+
+        # Find an available table number starting from the calculated base
+        AWG_TABLE=$((BASE_TABLE + IFACE_NUM))
+        while ! check_table_available "$AWG_TABLE"; do
+            AWG_TABLE=$((AWG_TABLE + 10))
+        done
+
         echo "Starting AmneziaWG interface $AWG_IFACE..."
         "$AWG_DIR/bin/awg-quick" up "$AWG_CONF"
         echo "AmneziaWG is up"
@@ -89,14 +92,16 @@ case "$1" in
     down)
         echo "Stopping AmneziaWG interface $AWG_IFACE..."
 
-        # Find the table number used by this interface from rt_tables.d
+        # Read the actual table number used by this interface from rt_tables.d
         RT_TABLES_FILE="/etc/iproute2/rt_tables.d/custom.conf"
+        AWG_TABLE=""
         if [ -f "$RT_TABLES_FILE" ]; then
             AWG_TABLE=$(grep -E "^[0-9]+[[:space:]]+${AWG_IFACE}$" "$RT_TABLES_FILE" | awk '{print $1}' | head -1)
         fi
         if [ -z "$AWG_TABLE" ]; then
-            echo "Warning: Could not find routing table for $AWG_IFACE, using default 100"
-            AWG_TABLE="100"
+            # Fallback to calculated value
+            AWG_TABLE=$((BASE_TABLE + IFACE_NUM))
+            echo "Warning: Could not find routing table for $AWG_IFACE in $RT_TABLES_FILE, using calculated value: $AWG_TABLE"
         fi
 
         # Remove MASQUERADE rule

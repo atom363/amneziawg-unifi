@@ -1,5 +1,5 @@
 [Unit]
-Description=AmneziaWG VPN Client
+Description=AmneziaWG VPN Client (%i)
 Documentation=https://github.com/lexfrei/amneziawg-unifi
 After=network-online.target
 Wants=network-online.target
@@ -7,9 +7,9 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/data/amneziawg/setup.sh up
-ExecStop=/data/amneziawg/setup.sh down
-ExecReload=/data/amneziawg/setup.sh down ; /data/amneziawg/setup.sh up
+ExecStart=/data/amneziawg/setup.sh up %i
+ExecStop=/data/amneziawg/setup.sh down %i
+ExecReload=/bin/sh -c '/data/amneziawg/setup.sh down %i && /data/amneziawg/setup.sh up %i'
 
 [Install]
 WantedBy=multi-user.target
